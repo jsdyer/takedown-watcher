@@ -7,7 +7,8 @@ on:
     branches: [main]
     paths:
       - scripts/collect.py
-      - watchlist.json
+      - watchlist.txt
+      - config.json
       - .github/workflows/collect.yml
 permissions:
   contents: write
