@@ -1,16 +1,22 @@
 {
-  "id": "coolcode-tool-template",
-  "title": "CoolCode Tool Starter",
-  "description": "A browser-only example that trims lines and removes exact duplicates.",
+  "id": "takedown-watcher",
+  "title": "Takedown Watcher",
+  "description": "Watches reported phishing and scam domains and records who acted: the registrar, the host or the CDN.",
   "category": "security",
-  "tags": ["text", "lines", "duplicates"],
-  "icon": "scan-search",
-  "url": "/coolcode-tool-template/",
-  "source": "https://github.com/jsdyer/coolcode-tool-template",
+  "tags": [
+    "phishing",
+    "abuse reports",
+    "takedown",
+    "dns",
+    "rdap"
+  ],
+  "icon": "shield-alert",
+  "url": "/takedown-watcher/",
+  "source": "https://github.com/jsdyer/takedown-watcher",
   "hosting": "project",
   "access": "browser",
   "data_info": {
-    "mode": "local",
-    "detail": "The browser reads the text you paste and compares its lines."
+    "mode": "mixed",
+    "detail": "Checks of each watched domain run every six hours on GitHub; the instant check asks Cloudflare DNS and RDAP from your browser."
   }
 }
