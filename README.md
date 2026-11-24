@@ -135,3 +135,5 @@ List (including wildcard and exception rules). Private hosting suffixes are
 excluded because RDAP queries the registrable parent, not a service tenant.
 To update: `python3 scripts/update_suffixes.py`, run the tests, review and commit
 `web/vendor/public-suffixes.json`. See `web/vendor/README.md` for provenance.
+
+Collection saves `web/data/history.json` and `web/data/status.json` together before rebasing and publishing. Collector or collection-workflow changes also trigger a collection run; failed acquisitions retain the previous successful timestamp.
