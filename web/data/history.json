@@ -1,7 +1,12 @@
 {
  "classification_note": "Version 2 reclassifies stored observations without changing their observation times; ordinary failures do not establish takedown or responsibility.",
- "last_run": "2026-11-24T05:49:02Z",
- "last_success": "2026-11-24T05:49:02Z",
+ "last_run": "2026-11-24T10:26:32Z",
+ "last_run_summary": {
+  "checked": 4,
+  "failed": 0,
+  "watched": 4
+ },
+ "last_success": "2026-11-24T10:26:32Z",
  "schema": 1,
  "targets": {
   "example.com": {
@@ -72,7 +77,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-24T05:49:02Z",
+    "at": "2026-11-24T10:26:32Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -130,11 +135,10 @@
      "score": 0,
      "usage": "Content Delivery Network"
     },
-    "scan": "https://urlscan.io/result/01a20c19-c034-747f-9eb0-3914adfe51de/",
     "state": "live"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T10:26:32Z",
    "note": "Control entry - should always report \"live\"",
    "reported": null,
    "target": "example.com",
@@ -209,7 +213,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-24T05:49:02Z",
+    "at": "2026-11-24T10:26:32Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -267,11 +271,10 @@
      "score": 0,
      "usage": "Content Delivery Network"
     },
-    "scan": "https://urlscan.io/result/01a20c19-c57f-769a-af03-262ee3e88816/",
     "state": "live"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T10:26:32Z",
    "note": "Demonstration control - no abuse report was made",
    "reported": null,
    "target": "example.org",
@@ -346,7 +349,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-24T05:49:02Z",
+    "at": "2026-11-24T10:26:32Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -404,11 +407,10 @@
      "score": 0,
      "usage": "Content Delivery Network"
     },
-    "scan": "https://urlscan.io/result/01a20c19-ca7e-7437-8ada-a2a75cc5f57f/",
     "state": "http-error"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T10:26:32Z",
    "note": "Demonstration control - an HTTP 404 is not a takedown",
    "reported": null,
    "target": "https://example.net/login",
@@ -435,7 +437,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-24T05:49:02Z",
+    "at": "2026-11-24T10:26:32Z",
     "classification_version": 2,
     "dns": {
      "a": [],
@@ -449,7 +451,7 @@
     "state": "nxdomain"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T10:26:32Z",
    "note": "Demonstration control - reserved nonresolving name, never a registered domain",
    "reported": null,
    "target": "takedown-demo.invalid",
