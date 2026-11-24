@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import datetime as dt
 import ipaddress
+import http.client
+import socket
+from domains import registered_domain
 import json
 import os
 from pathlib import Path
@@ -26,31 +29,23 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
 HOST = re.compile(r"(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}")
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
-# Second-level labels under which domains are registered one level deeper.
-# Not a full public suffix list: add entries here if you watch other such zones.
-MULTI_LABEL_SUFFIXES = {
-    "co.uk", "org.uk", "ac.uk", "gov.uk", "com.au", "net.au", "org.au", "co.nz",
-    "co.jp", "com.br", "com.cn", "com.mx", "co.za", "com.tr", "co.in", "gc.ca",
-}
 STATES = {
     "live": "Site is up and serving content",
     "cdn-warning": "Cloudflare is showing a phishing warning in front of the site",
-    "suspended": "The host replaced the site with a suspension page",
+    "suspended": "The response contains a suspension-page marker; operator action is not independently confirmed",
     "http-error": "The server answers, but with an error status",
     "unreachable": "The domain resolves, but nothing answers at that address",
     "no-address": "The domain exists, but has no IP address in DNS",
     "nxdomain": "The domain no longer resolves (NXDOMAIN)",
     "hold": "The registrar or registry put the domain on hold",
-    "deleted": "The domain is no longer registered",
+    "deleted": "Legacy RDAP-missing classification; not proof of deletion",
+    "tls-error": "Certificate validation failed; the page was not fetched insecurely",
 }
-ACTORS = {
-    "live": None, "cdn-warning": "cloudflare", "suspended": "host", "http-error": "host",
-    "unreachable": "host", "no-address": "dns provider", "nxdomain": "registrar or dns provider",
-    "deleted": "registrar or registry",
-}
+ACTORS = {state: None for state in STATES}
+ACTORS['cdn-warning'] = 'Cloudflare warning (inferred)'
 SUSPENSION_MARKERS = (
     "account has been suspended", "this account is suspended", "site has been suspended",
-    "website has been suspended", "account suspended", "site suspended", "has been disabled",
+    "website has been suspended", "account suspended", "site suspended",
 )
 CLOUDFLARE_PHISH_MARKERS = ("suspected phishing", "phishing site")
 
@@ -80,12 +75,6 @@ def normalize_target(raw: str) -> tuple[str, str]:
     clean = urllib.parse.urlunsplit((parts.scheme, host + port, path, parts.query, ""))
     return clean, host
 
-
-def registered_domain(host: str) -> str:
-    labels = host.split(".")
-    if len(labels) >= 3 and ".".join(labels[-2:]) in MULTI_LABEL_SUFFIXES:
-        return ".".join(labels[-3:])
-    return ".".join(labels[-2:])
 
 
 def parse_watchlist(text: str) -> list[dict]:
@@ -118,6 +107,9 @@ def parse_watchlist(text: str) -> list[dict]:
             errors.append(f"line {number}: {key} is listed twice")
             continue
         seen.add(key)
+        if not registered_domain(host):
+            errors.append(f"line {number}: enter a registered domain, not a public suffix")
+            continue
         entries.append({"target": key, "url": url, "host": host,
                         "domain": registered_domain(host),
                         "reported": reported or None, "note": note[:500] or None})
@@ -128,38 +120,68 @@ def parse_watchlist(text: str) -> list[dict]:
 
 # ---------------------------------------------------------------- network
 
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
+def checked_url(url, https_only=False):
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme not in (('https',) if https_only else ('http', 'https')) or not parts.hostname or parts.username or parts.password:
+        raise ValueError('Only public HTTP(S) URLs without credentials are supported')
+    if any(ord(c) < 32 for c in url): raise ValueError('URL contains control characters')
+    host = parts.hostname.lower().rstrip('.')
+    if host == 'localhost' or host.endswith(('.localhost', '.local', '.internal')):
+        raise ValueError('Local targets are not supported')
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        pass
+    else:
+        if not address.is_global: raise ValueError('Non-public target address is blocked')
+    return parts
+
+
+def public_addresses(host, port, resolve=socket.getaddrinfo):
+    records = resolve(host, port, type=socket.SOCK_STREAM)
+    addresses = list(dict.fromkeys(record[4][0] for record in records))
+    if not addresses or any(not ipaddress.ip_address(ip).is_global for ip in addresses):
+        raise OSError('Target resolves to a non-public address; request blocked')
+    return addresses
 
 
 class Net:
-    """Thin urllib wrapper. Tests replace it with a fake that has the same methods."""
-
+    """Pin each connection to validated public DNS results; never bypass TLS validation."""
     def __init__(self, user_agent: str, timeout: float, max_body: int):
         self.user_agent, self.timeout, self.max_body = user_agent, timeout, max_body
 
-    def _open(self, request, verify=True):
-        context = None if verify else ssl._create_unverified_context()
-        handlers = [_NoRedirect(), urllib.request.HTTPSHandler(context=context)]
-        return urllib.request.build_opener(*handlers).open(request, timeout=self.timeout)
-
     def request(self, method, url, headers=None, body=None, verify=True):
-        """Return (status, headers, bytes). Raises OSError on network failure."""
-        headers = {"User-Agent": self.user_agent, **(headers or {})}
-        data = json.dumps(body).encode() if body is not None else None
-        if data is not None:
-            headers.setdefault("Content-Type", "application/json")
-        request = urllib.request.Request(url, data=data, headers=headers, method=method)
+        if not verify: raise ValueError('TLS verification cannot be disabled')
+        parts = checked_url(url)
+        host = parts.hostname.encode('idna').decode('ascii')
+        port = parts.port or (443 if parts.scheme == 'https' else 80)
+        addresses = public_addresses(host, port)
+        connection = http.client.HTTPConnection(host, port, timeout=self.timeout)
+        connection.auto_open = 0
+        stream = None
+        for address in addresses:
+            try:
+                stream = socket.create_connection((address, port), timeout=self.timeout)
+                break
+            except OSError:
+                if address == addresses[-1]: raise
         try:
-            response = self._open(request, verify)
-        except urllib.error.HTTPError as response_error:
-            response = response_error
-        with response:
-            return response.status, dict(response.headers.items()), response.read(self.max_body)
+            if parts.scheme == 'https':
+                stream = ssl.create_default_context().wrap_socket(stream, server_hostname=host)
+            connection.sock = stream
+            headers = {'User-Agent': self.user_agent, **(headers or {})}
+            data = json.dumps(body).encode() if body is not None else None
+            if data is not None: headers.setdefault('Content-Type', 'application/json')
+            path = urllib.parse.urlunsplit(('', '', parts.path or '/', parts.query, ''))
+            connection.request(method, path, body=data, headers=headers)
+            with connection.getresponse() as response:
+                return response.status, dict(response.getheaders()), response.read(self.max_body)
+        finally:
+            connection.close()
+            stream.close()
 
-    def json(self, url, headers=None, method="GET", body=None):
-        status, _, content = self.request(method, url, {"Accept": "application/json", **(headers or {})}, body)
+    def json(self, url, headers=None, method='GET', body=None):
+        status, _, content = self.request(method, url, {'Accept': 'application/json', **(headers or {})}, body)
         try:
             return status, json.loads(content) if content else None
         except ValueError:
@@ -178,6 +200,8 @@ def check_dns(net, host: str) -> dict:
         result["status"] = code if result["status"] in (None, "NOERROR") else result["status"]
         wanted = 1 if kind == "A" else 28
         result[key] = sorted({a["data"] for a in data.get("Answer", []) if a.get("type") == wanted})
+    if result["status"] not in ("NOERROR", "NXDOMAIN"):
+        raise OSError("DNS lookup returned " + result["status"] + "; no takedown inferred")
     return result
 
 
@@ -228,6 +252,7 @@ def rdap_lookup(net, domain: str) -> dict:
     """rdap.org answers with a redirect to the registry's RDAP server; follow up to 3 hops."""
     url = f"https://rdap.org/domain/{domain}"
     for _ in range(4):
+        checked_url(url, https_only=True)
         status, headers, content = net.request("GET", url, {"Accept": "application/rdap+json, application/json"})
         if status in (301, 302, 303, 307, 308):
             location = {k.lower(): v for k, v in headers.items()}.get("location")
@@ -249,17 +274,16 @@ def _title(html: str):
 
 
 def check_http(net, url: str, max_redirects: int) -> dict:
-    chain, verify, tls_error = [], True, None
+    chain, tls_error = [], None
     current = url
     for _ in range(max_redirects + 1):
         try:
-            status, headers, content = net.request("GET", current, {"Accept": "text/html,*/*"}, verify=verify)
-        except OSError as exc:
+            checked_url(current)
+            status, headers, content = net.request("GET", current, {"Accept": "text/html,*/*"})
+        except (OSError, ValueError) as exc:
             reason = getattr(exc, "reason", exc)
-            if isinstance(reason, ssl.SSLCertVerificationError) and verify:
-                # Record the certificate problem, then look at the page anyway.
-                tls_error, verify = str(reason.verify_message or reason)[:200], False
-                continue
+            if isinstance(reason, ssl.SSLCertVerificationError):
+                tls_error = str(getattr(reason, "verify_message", None) or reason)[:200]
             return {"error": f"{type(reason).__name__}: {reason}"[:200], "chain": chain, "tls_error": tls_error}
         lower = {k.lower(): v for k, v in headers.items()}
         chain.append({"url": current, "status": status})
@@ -319,16 +343,18 @@ def submit_scan(net, url: str, key: str | None, visibility: str) -> str | None:
 
 def classify(dns: dict, rdap: dict | None, http: dict | None) -> tuple[str, str | None]:
     statuses = set((rdap or {}).get("statuses", []))
-    if rdap is not None and rdap.get("found") is False:
-        return "deleted", ACTORS["deleted"]
     if "client hold" in statuses:
         return "hold", "registrar"
     if "server hold" in statuses:
         return "hold", "registry"
+    if dns["status"] not in ("NOERROR", "NXDOMAIN"):
+        raise ValueError("DNS failure is not a takedown observation")
     if dns["status"] == "NXDOMAIN":
         return "nxdomain", ACTORS["nxdomain"]
     if not dns["a"] and not dns["aaaa"]:
         return "no-address", ACTORS["no-address"]
+    if http and http.get("tls_error"):
+        return "tls-error", None
     if not http or http.get("error"):
         return "unreachable", ACTORS["unreachable"]
     if http.get("cloudflare_warning"):
@@ -358,13 +384,15 @@ def observe(net, entry: dict, config: dict, env: dict) -> dict:
     if dns["status"] != "NXDOMAIN" and (dns["a"] or dns["aaaa"]):
         http = check_http(net, entry["url"], config["max_redirects"])
     state, actor = classify(dns, rdap_for_state, http)
-    observation = {"state": state, "actor": actor, "dns": dns, "rdap": rdap, "http": http}
+    observation = {"classification_version": 2, "state": state, "actor": actor, "dns": dns, "rdap": rdap, "http": http}
     address = next((ip for ip in dns["a"] + dns["aaaa"] if is_public(ip)), None)
     if address:
-        observation["network"] = check_network(net, address, env.get("IPINFO_TOKEN"))
-        reputation = check_reputation(net, address, env.get("ABUSEIPDB_API_KEY"), config["abuseipdb_max_age_days"])
-        if reputation:
-            observation["reputation"] = reputation
+        try:
+            observation['network'] = check_network(net, address, env.get('IPINFO_TOKEN'))
+            reputation = check_reputation(net, address, env.get('ABUSEIPDB_API_KEY'), config['abuseipdb_max_age_days'])
+            if reputation: observation['reputation'] = reputation
+        except (OSError, ValueError):
+            observation['enrichment_error'] = 'Optional network or reputation lookup unavailable'
     return observation
 
 
@@ -423,7 +451,10 @@ def run(root: Path, net, env: dict, now: str | None = None) -> dict:
         if apply_observation(record, observation, now, config["max_changes_per_target"]):
             summary["changed"].append(entry["target"])
             if config.get("urlscan_on_change") and observation.get("http") and not observation["http"].get("error"):
-                scan = submit_scan(net, entry["url"], env.get("URLSCAN_API_KEY"), config["urlscan_visibility"])
+                try:
+                    scan = submit_scan(net, entry["url"], env.get("URLSCAN_API_KEY"), config["urlscan_visibility"])
+                except (OSError, ValueError):
+                    scan = None
                 if scan:
                     record["changes"][-1]["scan"] = record["current"]["scan"] = scan
         print(f"{observation['state']:<12} {entry['target']}")
@@ -433,12 +464,17 @@ def run(root: Path, net, env: dict, now: str | None = None) -> dict:
     if entries and summary["checked"] == 0:
         raise SystemExit("Every check failed; leaving history.json unchanged.")
     history["last_run"] = now
+    history["last_run_summary"] = {"checked": summary["checked"], "failed": summary["failed"], "watched": len(entries)}
+    if summary["failed"] == 0: history["last_success"] = now
     validate_history(history)
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", dir=path.parent, delete=False, encoding="utf-8") as handle:
         json.dump(history, handle, indent=1, ensure_ascii=False, sort_keys=True)
         handle.write("\n")
     os.replace(handle.name, path)
+    status_path = root / "web/data/status.json"
+    status_path.write_text(json.dumps({"last_success": history.get("last_success"),
+        "last_attempt": now, **history["last_run_summary"]}, indent=2) + "\n")
     return summary
 
 

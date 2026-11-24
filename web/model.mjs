@@ -3,16 +3,18 @@
 export const STATES = {
   live: { label: 'Live', tone: 'bad', text: 'Site is up and serving content' },
   'cdn-warning': { label: 'CDN warning', tone: 'mid', text: 'Cloudflare is showing a phishing warning in front of the site' },
-  suspended: { label: 'Suspended', tone: 'good', text: 'The host replaced the site with a suspension page' },
+  suspended: { label: 'Suspension marker', tone: 'mid', text: 'The response contains a suspension-page marker; provider action is unconfirmed' },
   'http-error': { label: 'HTTP error', tone: 'mid', text: 'The server answers, but with an error status' },
   unreachable: { label: 'Unreachable', tone: 'mid', text: 'The domain resolves, but nothing answers at that address' },
   'no-address': { label: 'No address', tone: 'good', text: 'The domain exists, but has no IP address in DNS' },
   nxdomain: { label: 'NXDOMAIN', tone: 'good', text: 'The domain no longer resolves' },
   hold: { label: 'On hold', tone: 'good', text: 'The registrar or registry put the domain on hold' },
-  deleted: { label: 'Deleted', tone: 'good', text: 'The domain is no longer registered' },
+  deleted: { label: 'RDAP missing (legacy)', tone: 'mid', text: 'An old RDAP-missing classification, not proof of deletion' },
+  'dns-error': { label: 'DNS error', tone: 'mid', text: 'The DNS check failed; no takedown can be inferred' },
+  'tls-error': { label: 'Certificate error', tone: 'mid', text: 'Certificate validation failed; the page was not fetched insecurely' },
 };
 
-const DOWN = new Set(Object.keys(STATES).filter(state => state !== 'live'));
+const DOWN = new Set(['hold', 'suspended', 'cdn-warning']);
 const HOST = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,62}$/;
 
 export function stateInfo(state) {
@@ -40,9 +42,10 @@ export function firstTakedown(record) {
     if (!DOWN.has(change.state)) continue;
     const at = Date.parse(change.at);
     if (Number.isFinite(reported) && at < reported) continue;
-    const wasLive = i > 0 && changes[i - 1].state === 'live';
+    const wasLive = changes.slice(0, i).some(c => c.state === 'live');
+    if (!wasLive || !Number.isFinite(reported) || !Number.isFinite(at)) continue;
     return { at: change.at, state: change.state, actor: change.actor ?? null, observedLiveBefore: wasLive,
-      afterReport: Number.isFinite(reported) ? formatDuration(at - reported) : '' };
+      afterReport: formatDuration(at - reported) };
   }
   return null;
 }
@@ -87,7 +90,9 @@ export function parseTarget(input) {
   if (!raw) throw new Error('Enter a domain or URL');
   let host;
   try {
-    host = new URL(raw.includes('://') ? raw : `https://${raw}`).hostname;
+    const url = new URL(raw.includes('://') ? raw : `https://${raw}`);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('Use an HTTP(S) URL without credentials');
+    host = url.hostname;
   } catch {
     throw new Error('That is not a valid domain or URL');
   }
@@ -96,11 +101,7 @@ export function parseTarget(input) {
   return host;
 }
 
-export function registeredDomain(host, multiLabel = ['co.uk', 'org.uk', 'com.au', 'co.nz', 'co.jp', 'gc.ca']) {
-  const labels = host.split('.');
-  if (labels.length >= 3 && multiLabel.includes(labels.slice(-2).join('.'))) return labels.slice(-3).join('.');
-  return labels.slice(-2).join('.');
-}
+export { registeredDomain } from './domains.mjs';
 
 export function parseDoh(data, type) {
   if (!data || typeof data.Status !== 'number') throw new Error('Unexpected DNS response');
@@ -141,8 +142,8 @@ export function parseRdap(data) {
 
 // The browser cannot fetch the site itself (cross-origin), so this stops at DNS and registration.
 export function quickState(dns, rdap) {
-  if (rdap && rdap.found === false) return 'deleted';
   if (rdap?.statuses?.some(s => s === 'client hold' || s === 'server hold')) return 'hold';
+  if (!['NOERROR', 'NXDOMAIN'].includes(dns.rcode)) return 'dns-error';
   if (dns.rcode === 'NXDOMAIN') return 'nxdomain';
   if (!dns.addresses.length) return 'no-address';
   return 'resolves';

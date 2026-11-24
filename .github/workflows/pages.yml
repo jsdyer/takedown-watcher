@@ -13,7 +13,7 @@ jobs:
     outputs:
       publish: ${{ steps.identity.outputs.publish }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@v6
@@ -48,13 +48,13 @@ jobs:
         run: python3 tests/browser_smoke.py
       - name: Save browser screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browser-checks
           path: browser-checks/
           retention-days: 7
       - name: Save reviewable site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browser-tool-preview
           path: dist/

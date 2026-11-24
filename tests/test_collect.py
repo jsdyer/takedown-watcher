@@ -94,15 +94,15 @@ class ClassifyTests(unittest.TestCase):
     def test_states_and_actors(self):
         live = {"status": 200}
         cases = [
-            (self.dns(), {"found": False}, None, ("deleted", "registrar or registry")),
+            (self.dns(), {"found": False}, {"status": 200}, ("live", None)),
             (self.dns("NXDOMAIN", ()), {"found": True, "statuses": ["client hold"]}, None, ("hold", "registrar")),
             (self.dns(), {"found": True, "statuses": ["server hold"]}, live, ("hold", "registry")),
-            (self.dns("NXDOMAIN", ()), {"found": True, "statuses": ["active"]}, None, ("nxdomain", "registrar or dns provider")),
-            (self.dns(a=()), None, None, ("no-address", "dns provider")),
-            (self.dns(), None, {"error": "timeout"}, ("unreachable", "host")),
-            (self.dns(), None, {"status": 403, "cloudflare_warning": True}, ("cdn-warning", "cloudflare")),
-            (self.dns(), None, {"status": 200, "suspended": True}, ("suspended", "host")),
-            (self.dns(), None, {"status": 404}, ("http-error", "host")),
+            (self.dns("NXDOMAIN", ()), {"found": True, "statuses": ["active"]}, None, ("nxdomain", None)),
+            (self.dns(a=()), None, None, ("no-address", None)),
+            (self.dns(), None, {"error": "timeout"}, ("unreachable", None)),
+            (self.dns(), None, {"status": 403, "cloudflare_warning": True}, ("cdn-warning", "Cloudflare warning (inferred)")),
+            (self.dns(), None, {"status": 200, "suspended": True}, ("suspended", None)),
+            (self.dns(), None, {"status": 404}, ("http-error", None)),
             (self.dns(), {"found": True, "statuses": ["active"]}, live, ("live", None)),
         ]
         for dns, rdap_data, http, expected in cases:
@@ -133,7 +133,7 @@ class RunTests(unittest.TestCase):
         collect.run(self.root, net, {}, "2026-11-21T12:00:00Z")
         record = self.history()["targets"]["phish.example"]
         self.assertEqual([c["state"] for c in record["changes"]], ["live", "suspended"])
-        self.assertEqual(record["current"]["actor"], "host")
+        self.assertIsNone(record["current"]["actor"])
         self.assertEqual(record["last_checked"], "2026-11-21T12:00:00Z")
         self.assertEqual(record["current"]["rdap"]["registrar_abuse"], "abuse@registrar.example")
         self.assertEqual(record["current"]["rdap"]["nameservers"], ["ns1.example.net"])
@@ -174,6 +174,9 @@ class RunTests(unittest.TestCase):
         self.assertFalse(targets["b.example"]["watched"])
 
     def test_optional_keys_add_network_reputation_and_scan(self):
+        config = json.loads((self.root / "config.json").read_text())
+        config["urlscan_on_change"] = True
+        (self.root / "config.json").write_text(json.dumps(config))
         self.write_watchlist("a.example\n")
         net = FakeNet()
         net.site("a.example", headers={"Server": "cloudflare", "CF-RAY": "abc-YVR"})
@@ -211,3 +214,27 @@ class RunTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class EvidenceAndNetworkTests(unittest.TestCase):
+    def test_blocks_nonpublic_and_credential_urls(self):
+        for url in ["http://127.0.0.1/", "http://[::1]/", "http://169.254.169.254/", "file:///etc/passwd", "https://u:p@example.com/", "https://localhost/"]:
+            with self.subTest(url=url), self.assertRaises(ValueError): collect.checked_url(url)
+
+    def test_rebinding_mixed_addresses_blocked(self):
+        def resolve(*a, **kw): return [(2, 1, 6, '', ('1.1.1.1', 443)), (2, 1, 6, '', ('127.0.0.1', 443))]
+        with self.assertRaises(OSError): collect.public_addresses('example.com', 443, resolve)
+
+    def test_rdap_redirect_cannot_read_local_file(self):
+        net = FakeNet()
+        net.add('https://rdap.org/domain/example.com', status=302, headers={'Location': 'file:///etc/passwd'})
+        with self.assertRaises(ValueError): collect.rdap_lookup(net, 'example.com')
+        self.assertEqual(len(net.calls), 1)
+
+    def test_tls_failure_is_not_live_or_host_attribution(self):
+        self.assertEqual(collect.classify({'status': 'NOERROR', 'a': ['1.1.1.1'], 'aaaa': []}, None,
+            {'error': 'certificate', 'tls_error': 'expired'}), ('tls-error', None))
+
+    def test_psl_exception_and_public_suffix(self):
+        self.assertEqual(collect.registered_domain('a.city.kawasaki.jp'), 'city.kawasaki.jp')
+        self.assertEqual(collect.registered_domain('a.example.com.au'), 'example.com.au')
+        self.assertIsNone(collect.registered_domain('co.uk'))

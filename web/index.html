@@ -19,13 +19,14 @@
 
     <section aria-labelledby="watch-title">
       <h2 id="watch-title">Watched domains</h2>
+      <p>The bundled example.com, example.org, example.net and .invalid entries are demonstration controls, not abuse cases. Add your own targets in the repository watchlist.</p>
       <p id="run-info" class="muted">Loading the latest checks…</p>
       <div class="actions">
         <label class="inline"><input type="checkbox" id="show-removed"> Include domains no longer on the watchlist</label>
       </div>
       <div class="table-wrap">
         <table id="targets">
-          <thead><tr><th scope="col">Target</th><th scope="col">State</th><th scope="col">Who acted</th><th scope="col">Reported</th><th scope="col">Down after</th><th scope="col">Last checked</th></tr></thead>
+          <thead><tr><th scope="col">Target</th><th scope="col">State</th><th scope="col">Registry role</th><th scope="col">Reported</th><th scope="col">First indicator after report</th><th scope="col">Last checked</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -35,7 +36,7 @@
 
     <section aria-labelledby="check-title">
       <h2 id="check-title">Check a domain now</h2>
-      <p>Looks up DNS and the registration record from your browser. It can't load the site itself, so use this to see whether a registrar or DNS provider has acted.</p>
+      <p>Looks up DNS and the registration record from your browser. It cannot load the site itself or prove why a domain stopped working.</p>
       <form id="check-form" class="row">
         <label for="check-input" class="visually-hidden">Domain or URL</label>
         <input id="check-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com or https://example.com/login" maxlength="500">
@@ -50,6 +51,7 @@
       <dl id="legend" class="facts"></dl>
     </section>
 
+    <aside><strong>Evidence, not attribution.</strong> Timeouts, HTTP errors, missing DNS and missing RDAP records do not prove a takedown or identify who acted. A registry hold identifies a registry/registrar role, but not its cause. Suspension pages and CDN warnings are indicators. Times are first observations at six-hour checks, measured approximately from a date-only report field.</aside>
     <aside aria-label="Privacy"><strong>What leaves your browser.</strong> The table is a static file published with this page. “Check a domain now” sends the domain you type to Cloudflare DNS (cloudflare-dns.com) and to rdap.org, which forwards it to the domain's registry. Nothing is stored.</aside>
     <noscript><p>This tool needs JavaScript to show the checks.</p></noscript>
   </main>

@@ -62,9 +62,17 @@ test('DNS and RDAP parsing feed the quick state', () => {
   assert.equal(rdap.registrarAbuse, 'abuse@reg.example');
   assert.equal(quickState(dns, rdap), 'hold');
   assert.equal(quickState({ rcode: 'NXDOMAIN', addresses: [] }, null), 'nxdomain');
-  assert.equal(quickState(dns, { found: false }), 'deleted');
+  assert.equal(quickState(dns, { found: false }), 'resolves');
   assert.equal(quickState(dns, { found: true, statuses: [] }), 'resolves');
   assert.throws(() => parseDoh({}, 'A'));
 });
 
 test('unknown states still render', () => { assert.equal(stateInfo('weird').label, 'weird'); });
+
+test('ordinary errors and first-seen holds are not timed as takedowns', () => {
+  for (const state of ['http-error', 'nxdomain', 'unreachable', 'tls-error']) {
+    assert.equal(firstTakedown(record('a.example', [{at:'2026-11-19T00:00:00Z',state:'live'}, {at:'2026-11-22T00:00:00Z',state}], {reported:'2026-11-20'})), null);
+  }
+  assert.equal(firstTakedown(record('a.example', [{at:'2026-11-22T00:00:00Z',state:'hold'}], {reported:'2026-11-20'})), null);
+  assert.equal(quickState({rcode:'SERVFAIL',addresses:[]}, null), 'dns-error');
+});

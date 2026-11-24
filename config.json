@@ -6,7 +6,7 @@
   "max_body_bytes": 262144,
   "max_redirects": 5,
   "max_changes_per_target": 200,
-  "urlscan_on_change": true,
+  "urlscan_on_change": false,
   "urlscan_visibility": "unlisted",
   "abuseipdb_max_age_days": 90
 }

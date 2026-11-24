@@ -1,7 +1,7 @@
 {
   "id": "takedown-watcher",
   "title": "Takedown Watcher",
-  "description": "Watches reported phishing and scam domains and records who acted: the registrar, the host or the CDN.",
+  "description": "Track DNS, registration and HTTP changes for watched domains, with dated evidence and cautious takedown indicators.",
   "category": "security",
   "tags": [
     "phishing",
@@ -17,6 +17,7 @@
   "access": "browser",
   "data_info": {
     "mode": "mixed",
-    "detail": "Checks of each watched domain run every six hours on GitHub; the instant check asks Cloudflare DNS and RDAP from your browser."
+    "detail": "Checks of each watched domain run every six hours on GitHub; the instant check asks Cloudflare DNS and RDAP from your browser.",
+    "cadence": "Every six hours at :23 UTC"
   }
 }

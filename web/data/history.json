@@ -1,5 +1,7 @@
 {
+ "classification_note": "Version 2 reclassifies stored observations without changing their observation times; ordinary failures do not establish takedown or responsibility.",
  "last_run": "2026-11-24T05:49:02Z",
+ "last_success": "2026-11-24T05:49:02Z",
  "schema": 1,
  "targets": {
   "example.com": {
@@ -7,6 +9,7 @@
     {
      "actor": null,
      "at": "2026-11-24T05:49:02Z",
+     "classification_version": 2,
      "dns": {
       "a": [
        "104.20.23.154",
@@ -70,6 +73,7 @@
    "current": {
     "actor": null,
     "at": "2026-11-24T05:49:02Z",
+    "classification_version": 2,
     "dns": {
      "a": [
       "104.20.23.154",
@@ -142,6 +146,7 @@
     {
      "actor": null,
      "at": "2026-11-24T05:49:02Z",
+     "classification_version": 2,
      "dns": {
       "a": [
        "104.20.26.136",
@@ -205,6 +210,7 @@
    "current": {
     "actor": null,
     "at": "2026-11-24T05:49:02Z",
+    "classification_version": 2,
     "dns": {
      "a": [
       "104.20.26.136",
@@ -266,8 +272,8 @@
    },
    "first_checked": "2026-11-24T05:49:02Z",
    "last_checked": "2026-11-24T05:49:02Z",
-   "note": "Demo - reported to registrar and host, no action yet",
-   "reported": "2026-11-20",
+   "note": "Demonstration control - no abuse report was made",
+   "reported": null,
    "target": "example.org",
    "url": "https://example.org/",
    "watched": true
@@ -275,8 +281,9 @@
   "https://example.net/login": {
    "changes": [
     {
-     "actor": "host",
+     "actor": null,
      "at": "2026-11-24T05:49:02Z",
+     "classification_version": 2,
      "dns": {
       "a": [
        "104.20.21.8",
@@ -338,8 +345,9 @@
     }
    ],
    "current": {
-    "actor": "host",
+    "actor": null,
     "at": "2026-11-24T05:49:02Z",
+    "classification_version": 2,
     "dns": {
      "a": [
       "104.20.21.8",
@@ -401,8 +409,8 @@
    },
    "first_checked": "2026-11-24T05:49:02Z",
    "last_checked": "2026-11-24T05:49:02Z",
-   "note": "Demo - URL entry, checks this exact path",
-   "reported": "2026-11-21",
+   "note": "Demonstration control - an HTTP 404 is not a takedown",
+   "reported": null,
    "target": "https://example.net/login",
    "url": "https://example.net/login",
    "watched": true
@@ -410,8 +418,9 @@
   "takedown-demo.invalid": {
    "changes": [
     {
-     "actor": "registrar or registry",
+     "actor": null,
      "at": "2026-11-24T05:49:02Z",
+     "classification_version": 2,
      "dns": {
       "a": [],
       "aaaa": [],
@@ -421,12 +430,13 @@
      "rdap": {
       "found": false
      },
-     "state": "deleted"
+     "state": "nxdomain"
     }
    ],
    "current": {
-    "actor": "registrar or registry",
+    "actor": null,
     "at": "2026-11-24T05:49:02Z",
+    "classification_version": 2,
     "dns": {
      "a": [],
      "aaaa": [],
@@ -436,12 +446,12 @@
     "rdap": {
      "found": false
     },
-    "state": "deleted"
+    "state": "nxdomain"
    },
    "first_checked": "2026-11-24T05:49:02Z",
    "last_checked": "2026-11-24T05:49:02Z",
-   "note": "Demo - simulates a registrar takedown",
-   "reported": "2026-11-01",
+   "note": "Demonstration control - reserved nonresolving name, never a registered domain",
+   "reported": null,
    "target": "takedown-demo.invalid",
    "url": "https://takedown-demo.invalid/",
    "watched": true

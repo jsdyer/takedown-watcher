@@ -1,40 +1,33 @@
 # Takedown Watcher
 
-Watches reported phishing and scam domains and records **who acted**: the
-registrar, the registry, the host or Cloudflare. Every six hours a GitHub Action
-checks each domain on the watchlist, appends any change of state to a history
-file and republishes the page at `coolcode.ca/takedown-watcher/`.
+Tracks DNS, registration and HTTP changes for a configurable watchlist every
+six hours. Published at `coolcode.ca/takedown-watcher/`. The supplied watchlist
+contains **demonstration controls, not allegations of abuse**. Replace or extend
+`watchlist.txt` with targets you actually want to monitor.
 
 ## Using the tool
 
 <!-- coolcode:guide -->
-Each target shows its current state and who most likely caused it. NXDOMAIN or "On hold" points to the registrar or registry, "Suspended", "HTTP error" or "Unreachable" points to the host, and "CDN warning" means Cloudflare put a phishing interstitial in front of the site. "Down after" counts from the date in the watchlist's reported column. A failed check never counts as a takedown: the previous state is kept and the error is shown in the details.
+Inspect each target's DNS, registration and HTTP evidence and timeline. Ordinary HTTP errors, missing DNS answers, TLS failures and a missing RDAP record do not prove a takedown or identify who acted. Registry hold statuses identify a registrar/registry role but not its reason. “First indicator after report” appears only after an observed live state and a later hold, suspension message or CDN warning; it is an approximate observation interval, not a confirmed response time. Failed DNS checks retain the previous observation and show the error.
 <!-- /coolcode:guide -->
 
-Select a target to see its DNS answer, network, registrar and abuse contact,
-registry status, HTTP response and a timeline of state changes, with links to
-urlscan.io evidence scans when that key is configured.
+**Check a domain now** queries Cloudflare DNS and RDAP in your browser. It does
+not fetch the suspect page. The scheduled collector also fetches HTTP evidence,
+validates certificates, checks public addresses on each redirect, and never
+falls back to insecure TLS. Optional enrichment failure does not erase the
+underlying DNS/HTTP observation.
 
-**Check a domain now** runs a quick lookup from your browser using Cloudflare DNS
-and RDAP. Browsers can't load another site cross-origin, so the instant check
-stops at DNS and registration; the scheduled check also fetches the page.
-
-### States
-
-| State | Meaning | Likely actor |
+| State | Observable evidence | Attribution |
 | --- | --- | --- |
-| Live | Site is up and serving content | — |
-| CDN warning | Cloudflare phishing interstitial | Cloudflare |
-| Suspended | Host suspension page | Host |
-| HTTP error | Server answers with 4xx/5xx | Host |
-| Unreachable | Resolves, but nothing answers | Host |
-| No address | Domain exists, no A/AAAA records | DNS provider |
-| NXDOMAIN | Domain no longer resolves | Registrar or DNS provider |
-| On hold | RDAP status `client hold` / `server hold` | Registrar / registry |
-| Deleted | RDAP has no record | Registrar or registry |
+| Live | HTTP response below 400 | Does not establish safe or legitimate content |
+| CDN warning | Warning text and Cloudflare response markers | Inferred warning; not confirmed action |
+| Suspended | Suspension text in returned content | Could be self-authored; actor unconfirmed |
+| HTTP error / Unreachable / TLS error | Response error, failed connection or certificate failure | Unconfirmed |
+| No address / NXDOMAIN | Resolver has no address or says name absent | Unconfirmed |
+| On hold | RDAP `client hold` / `server hold` | Registrar / registry role; reason unknown |
 
-The actor is an inference from what is observable, not a confirmation from the
-provider.
+A missing RDAP record alone does not mean a domain was deleted. Historical
+observations were reclassified using these rules without changing their dates.
 
 ## Setup
 
@@ -45,7 +38,7 @@ provider.
    | --- | --- |
    | `IPINFO_TOKEN` | ASN, network name and country of the site's IP (IPinfo Lite) |
    | `ABUSEIPDB_API_KEY` | Reputation score of the site's IP. The collector only *checks*; it never files reports |
-   | `URLSCAN_API_KEY` | An *unlisted* urlscan.io scan each time a target changes state, as timestamped evidence |
+   | `URLSCAN_API_KEY` | Optional scan only when `urlscan_on_change` is explicitly enabled (off by default) |
 
 2. **Settings → Actions → General → Workflow permissions → Read and write.**
    The collector commits `web/data/history.json` and then starts the Pages
@@ -68,7 +61,7 @@ https://shop.example.net/checkout | 2026-11-21 |
 ```
 
 `target` is a bare domain (checked as `https://domain/`) or a full URL.
-`reported` (YYYY-MM-DD, UTC) is optional and drives "Down after". There is no
+`reported` (YYYY-MM-DD, UTC) is optional and permits the approximate indicator interval after a prior live observation. There is no
 limit on the number of entries. **This repository is public: anything in the
 watchlist is visible to everyone.**
 
@@ -82,14 +75,18 @@ tick "Include domains no longer on the watchlist".
 
 **Tune the checks:** `config.json` holds the user agent, HTTP timeout, body size
 read, redirect limit, how many changes to keep per target, and whether to submit
-urlscan scans on change (`urlscan_on_change`, `urlscan_visibility`).
+urlscan scans on change (`urlscan_on_change`, `urlscan_visibility`). Scans are off
+by default. Enabling them submits target URLs to urlscan.io; unlisted results
+are not private and may be accessible to urlscan customers. Do not include
+credentials, personal data or secret URL tokens in a public watchlist.
 
 **Schedule:** `.github/workflows/collect.yml` runs at minute 23 every six hours
 (`23 */6 * * *`). GitHub can delay or skip scheduled runs and disables schedules
 in public repositories after 60 days without activity;
 `.github/workflows/schedule-guard.yml` re-enables it weekly. Also register
 `collect.yml` with the independent Linux scheduler via `workflow_dispatch`, with
-an expected freshness of about six hours. Re-run
+a six-hour cadence. `web/data/status.json` exposes `last_success` only when all
+watched targets were checked; partial failures cannot make it appear fresh. Re-run
 `python3 scripts/add_schedule_guard.py --repository jsdyer/takedown-watcher .github/workflows/collect.yml`
 if you rename the collector.
 
@@ -122,3 +119,19 @@ IPINFO_TOKEN=... python3 scripts/collect.py
 | `.github/workflows/pages.yml` | Test, build and deploy to Pages |
 | `.github/workflows/schedule-guard.yml` | Keeps the schedule enabled |
 | `tool.json` | Catalogue record for coolcode.ca |
+
+## Collection maintenance
+
+The catalogue, imported README guide, repository audit, sitemap, Cloudflare
+visitor registry and Linux refresh watchdog are managed in
+[jsdyer/jsdyer.github.io](https://github.com/jsdyer/jsdyer.github.io).
+Follow its [tool lifecycle checklist](https://github.com/jsdyer/jsdyer.github.io/blob/main/docs/tool-lifecycle.md)
+when changing this tool's identity, source, deployment, inputs or refresh schedule.
+The independent scheduler must actually be installed on the Linux server; a
+GitHub schedule guard alone cannot guarantee refreshes continue.
+
+Registration boundaries use the vendored ICANN section of the Public Suffix
+List (including wildcard and exception rules). Private hosting suffixes are
+excluded because RDAP queries the registrable parent, not a service tenant.
+To update: `python3 scripts/update_suffixes.py`, run the tests, review and commit
+`web/vendor/public-suffixes.json`. See `web/vendor/README.md` for provenance.

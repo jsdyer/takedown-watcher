@@ -7,7 +7,7 @@
 #   target    A domain (example.com) or a full URL (https://example.com/login).
 #             A bare domain is checked as https://<domain>/.
 #   reported  Optional. The date you sent abuse reports, as YYYY-MM-DD (UTC).
-#             Used to measure time from report to takedown. Leave blank for none.
+#             Used for approximate time to the first action indicator. Leave blank for none.
 #   note      Optional. Free text: who you reported to, a case number, etc.
 #
 # Lines starting with "#" and blank lines are ignored. Add as many entries as
@@ -21,12 +21,12 @@
 # Control: an IANA-reserved domain that should always stay up.
 example.com |  | Control entry - should always report "live"
 
-# A reported entry where no one has acted yet.
-example.org | 2026-11-20 | Demo - reported to registrar and host, no action yet
+# Another IANA demonstration control.
+example.org | | Demonstration control - no abuse report was made
 
 # A full URL rather than a bare domain.
-https://example.net/login | 2026-11-21 | Demo - URL entry, checks this exact path
+https://example.net/login | | Demonstration control - an HTTP 404 is not a takedown
 
 # The .invalid TLD can never resolve, so this shows the "NXDOMAIN" state
-# you would see after a registrar suspends a domain.
-takedown-demo.invalid | 2026-11-01 | Demo - simulates a registrar takedown
+# without implying any registrar action.
+takedown-demo.invalid | | Demonstration control - reserved nonresolving name, never a registered domain

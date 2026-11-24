@@ -2,6 +2,7 @@ import { STATES, stateInfo, summarize, parseTarget, registeredDomain, parseDoh, 
 
 const $ = selector => document.querySelector(selector);
 let history = null;
+let checkRun = 0;
 
 function el(tag, text, attrs = {}) {
   const node = document.createElement(tag);
@@ -57,8 +58,8 @@ function renderDetails(row) {
   for (const change of row.changes) {
     const item = el('li');
     item.append(el('time', when(change.at), { datetime: change.at }), ' ', badge(change.state));
-    if (change.actor) item.append(` by ${change.actor}`);
-    if (change.scan) {
+    if (change.actor) item.append(` · recorded role: ${change.actor}`);
+    if (change.scan && /^https:\/\/urlscan\.io\/result\/[a-zA-Z0-9-]+\/?$/.test(change.scan)) {
       item.append(' · ');
       item.append(el('a', 'urlscan evidence', { href: change.scan, rel: 'noreferrer noopener' }));
     }
@@ -82,11 +83,13 @@ function render() {
     const button = el('button', row.target, { type: 'button', class: 'link' });
     button.addEventListener('click', () => renderDetails(row));
     cell.append(button);
+    if (row.note) cell.append(el('p', row.note, {class:'muted small'}));
+    if (row.lastError) cell.append(el('p', 'Latest check failed; showing the previous observation', {class:'muted small'}));
     if (!row.watched) cell.append(el('span', ' (removed)', { class: 'muted' }));
     const stateCell = el('td');
     stateCell.append(row.state ? badge(row.state) : el('span', 'Not checked', { class: 'muted' }));
-    tr.append(cell, stateCell, el('td', row.actor ?? '—'), el('td', row.reported ?? '—'),
-      el('td', row.takedown?.afterReport || (row.takedown ? 'yes' : '—')), el('td', when(row.lastChecked)));
+    tr.append(cell, stateCell, el('td', row.state === 'hold' ? row.actor ?? '—' : 'Unconfirmed'), el('td', row.reported ?? '—'),
+      el('td', row.takedown ? '~' + row.takedown.afterReport : '—'), el('td', when(row.lastChecked)));
     body.append(tr);
   }
   $('#targets').hidden = rows.length === 0;
@@ -102,12 +105,16 @@ function renderLegend() {
 }
 
 async function getJson(url, accept = 'application/json') {
-  const response = await fetch(url, { headers: { Accept: accept } });
-  return { status: response.status, data: response.status === 200 ? await response.json() : null };
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(url, { headers: { Accept: accept }, credentials: 'omit', referrerPolicy: 'no-referrer', signal: controller.signal });
+    return { status: response.status, data: response.status === 200 ? await response.json() : null };
+  } finally { clearTimeout(timer); }
 }
 
 async function instantCheck(event) {
   event.preventDefault();
+  const run = ++checkRun;
   const status = $('#check-status');
   const result = $('#check-result');
   result.hidden = true;
@@ -120,31 +127,34 @@ async function instantCheck(event) {
   }
   status.textContent = `Checking ${host}…`;
   try {
+    if (!registeredDomain(host)) throw new Error('Enter a registered domain');
     const dnsUrl = type => `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=${type}`;
     const [a, aaaa, rdapResponse] = await Promise.all([
       getJson(dnsUrl('A'), 'application/dns-json'),
       getJson(dnsUrl('AAAA'), 'application/dns-json'),
-      getJson(`https://rdap.org/domain/${encodeURIComponent(registeredDomain(host))}`, 'application/rdap+json'),
+      getJson(`https://rdap.org/domain/${encodeURIComponent(registeredDomain(host))}`, 'application/rdap+json').catch(() => ({status:0,data:null})),
     ]);
+    if (run !== checkRun) return;
     const v4 = parseDoh(a.data, 'A');
     const v6 = parseDoh(aaaa.data, 'AAAA');
-    const dns = { rcode: v4.rcode, addresses: [...v4.addresses, ...v6.addresses] };
+    const dns = { rcode: v4.rcode !== 'NOERROR' ? v4.rcode : v6.rcode, addresses: [...v4.addresses, ...v6.addresses] };
     const rdap = rdapResponse.status === 404 ? { found: false } : rdapResponse.data ? parseRdap(rdapResponse.data) : null;
     const state = quickState(dns, rdap);
     result.replaceChildren();
-    fact(result, 'Result', state === 'resolves' ? 'Still resolves — check the site itself' : stateInfo(state).text);
+    fact(result, 'Result', state === 'resolves' ? 'DNS has an address. This browser check does not establish whether the site is online.' : stateInfo(state).text);
     fact(result, 'DNS', `${dns.rcode}${dns.addresses.length ? ' → ' + dns.addresses.join(', ') : ''}`);
     if (rdap?.found) {
       fact(result, 'Registrar', rdap.registrar);
       fact(result, 'Registrar abuse contact', rdap.registrarAbuse);
       fact(result, 'Registry status', rdap.statuses);
       fact(result, 'Registered', rdap.registered ? when(rdap.registered) : null);
-    } else if (!rdap) {
-      fact(result, 'Registration', 'No RDAP record available for this domain');
+    } else {
+      fact(result, 'Registration', rdap?.found === false ? 'RDAP returned no record; this does not prove deletion.' : 'RDAP lookup unavailable; DNS results are shown separately.');
     }
     result.hidden = false;
     status.textContent = `Checked ${host} at ${when(new Date().toISOString())}.`;
   } catch {
+    if (run !== checkRun) return;
     status.textContent = 'The lookup failed. Your network or a browser extension may be blocking it; try again.';
   }
 }

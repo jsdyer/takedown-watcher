@@ -2,8 +2,8 @@
 
 - Keep app source in `web/`, build code in `scripts/`, and meaningful tests in `tests/`.
   Never commit `dist/`. Do not add dependencies without a concrete application need.
-- Run `scripts/init.py` as documented in README, then replace the example UI,
-  behaviour, tests and privacy text. Review all fields in `tool.json`.
+- This is an initialized application. Maintain its real UI, tests, privacy text
+  and `tool.json`; do not run the template initializer again.
 - Build for expandable personal use: keep watchlists, preset queries, source
   selections and tunable limits in a documented configuration file. Defaults are
   starting points; accept arbitrary valid visitor input when the source permits it.
@@ -38,3 +38,12 @@
   the extra practical detail in the hub README. Only the short source sentence
   belongs in the homepage record. Import the note with `scripts/sync_guides.py
   --tool TOOL_ID` in the hub before regenerating its README.
+
+## Collection integration is mandatory
+
+Follow https://github.com/jsdyer/jsdyer.github.io/blob/main/docs/tool-lifecycle.md
+for every addition, removal or rename, and for changes to schedules or data.
+Update the hub catalogue, imported guide, README, audit inventory/exclusions,
+generated Cloudflare visitor Worker and verified deployment receipt, Linux
+watchdog targets/freshness checks, and sitemap. A repository commit alone does
+not finish a collection change. Keep the watchdog and its registry in GitHub.

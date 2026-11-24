@@ -22,7 +22,7 @@ HISTORY = {
             "changes": [
                 {"at": "2026-11-19T00:00:00Z", "state": "live", "actor": None},
                 {"at": "2026-11-22T00:00:00Z", "state": "hold", "actor": "registrar",
-                 "scan": "https://urlscan.io/result/u-1/"},
+                 "scan": "https://urlscan.io/result/abcd-1234/"},
             ],
             "current": {"at": "2026-11-23T06:00:00Z", "state": "hold", "actor": "registrar",
                         "dns": {"status": "NXDOMAIN", "a": [], "aaaa": []},
@@ -92,7 +92,7 @@ def main():
                 page.locator("button.link", has_text="phish.example").click()
                 details = page.locator("#details").inner_text()
                 assert "abuse@reg.example" in details and "<b>case 7</b>" in details
-                assert page.locator("#details a[href='https://urlscan.io/result/u-1/']").count() == 1
+                assert page.locator("#details a[href='https://urlscan.io/result/abcd-1234/']").count() == 1
                 page.locator("#check-input").fill("https://Example.COM/login")
                 page.locator("#check-form button").click()
                 page.wait_for_selector("#check-result:not([hidden])")
