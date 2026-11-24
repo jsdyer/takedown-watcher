@@ -1,5 +1,450 @@
 {
- "last_run": null,
+ "last_run": "2026-11-24T05:49:02Z",
  "schema": 1,
- "targets": {}
+ "targets": {
+  "example.com": {
+   "changes": [
+    {
+     "actor": null,
+     "at": "2026-11-24T05:49:02Z",
+     "dns": {
+      "a": [
+       "104.20.23.154",
+       "172.66.147.243"
+      ],
+      "aaaa": [
+       "2606:4700:10::6814:179a",
+       "2606:4700:10::ac42:93f3"
+      ],
+      "status": "NOERROR"
+     },
+     "http": {
+      "chain": [
+       {
+        "status": 200,
+        "url": "https://example.com/"
+       }
+      ],
+      "cloudflare": true,
+      "cloudflare_warning": false,
+      "final_url": "https://example.com/",
+      "server": "cloudflare",
+      "status": 200,
+      "suspended": false,
+      "title": "Example Domain",
+      "tls_error": null
+     },
+     "network": {
+      "as_domain": "cloudflare.com",
+      "as_name": "Cloudflare, Inc.",
+      "asn": "AS13335",
+      "country_code": "US",
+      "ip": "104.20.23.154"
+     },
+     "rdap": {
+      "expires": "2027-08-13T04:00:00Z",
+      "found": true,
+      "nameservers": [
+       "elliott.ns.cloudflare.com",
+       "hera.ns.cloudflare.com"
+      ],
+      "registered": "1995-08-14T04:00:00Z",
+      "registrar": "RESERVED-Internet Assigned Numbers Authority",
+      "registrar_abuse": null,
+      "statuses": [
+       "client delete prohibited",
+       "client transfer prohibited",
+       "client update prohibited"
+      ]
+     },
+     "reputation": {
+      "isp": "Cloudflare, Inc.",
+      "reports": 3,
+      "score": 0,
+      "usage": "Content Delivery Network"
+     },
+     "scan": "https://urlscan.io/result/01a20c19-c034-747f-9eb0-3914adfe51de/",
+     "state": "live"
+    }
+   ],
+   "current": {
+    "actor": null,
+    "at": "2026-11-24T05:49:02Z",
+    "dns": {
+     "a": [
+      "104.20.23.154",
+      "172.66.147.243"
+     ],
+     "aaaa": [
+      "2606:4700:10::6814:179a",
+      "2606:4700:10::ac42:93f3"
+     ],
+     "status": "NOERROR"
+    },
+    "http": {
+     "chain": [
+      {
+       "status": 200,
+       "url": "https://example.com/"
+      }
+     ],
+     "cloudflare": true,
+     "cloudflare_warning": false,
+     "final_url": "https://example.com/",
+     "server": "cloudflare",
+     "status": 200,
+     "suspended": false,
+     "title": "Example Domain",
+     "tls_error": null
+    },
+    "network": {
+     "as_domain": "cloudflare.com",
+     "as_name": "Cloudflare, Inc.",
+     "asn": "AS13335",
+     "country_code": "US",
+     "ip": "104.20.23.154"
+    },
+    "rdap": {
+     "expires": "2027-08-13T04:00:00Z",
+     "found": true,
+     "nameservers": [
+      "elliott.ns.cloudflare.com",
+      "hera.ns.cloudflare.com"
+     ],
+     "registered": "1995-08-14T04:00:00Z",
+     "registrar": "RESERVED-Internet Assigned Numbers Authority",
+     "registrar_abuse": null,
+     "statuses": [
+      "client delete prohibited",
+      "client transfer prohibited",
+      "client update prohibited"
+     ]
+    },
+    "reputation": {
+     "isp": "Cloudflare, Inc.",
+     "reports": 3,
+     "score": 0,
+     "usage": "Content Delivery Network"
+    },
+    "scan": "https://urlscan.io/result/01a20c19-c034-747f-9eb0-3914adfe51de/",
+    "state": "live"
+   },
+   "first_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T05:49:02Z",
+   "note": "Control entry - should always report \"live\"",
+   "reported": null,
+   "target": "example.com",
+   "url": "https://example.com/",
+   "watched": true
+  },
+  "example.org": {
+   "changes": [
+    {
+     "actor": null,
+     "at": "2026-11-24T05:49:02Z",
+     "dns": {
+      "a": [
+       "104.20.26.136",
+       "172.66.157.237"
+      ],
+      "aaaa": [
+       "2606:4700:10::6814:1a88",
+       "2606:4700:10::ac42:9ded"
+      ],
+      "status": "NOERROR"
+     },
+     "http": {
+      "chain": [
+       {
+        "status": 200,
+        "url": "https://example.org/"
+       }
+      ],
+      "cloudflare": true,
+      "cloudflare_warning": false,
+      "final_url": "https://example.org/",
+      "server": "cloudflare",
+      "status": 200,
+      "suspended": false,
+      "title": "Example Domain",
+      "tls_error": null
+     },
+     "network": {
+      "as_domain": "cloudflare.com",
+      "as_name": "Cloudflare, Inc.",
+      "asn": "AS13335",
+      "country_code": "US",
+      "ip": "104.20.26.136"
+     },
+     "rdap": {
+      "expires": "2027-08-30T04:00:00Z",
+      "found": true,
+      "nameservers": [
+       "katelyn.ns.cloudflare.com",
+       "mitch.ns.cloudflare.com"
+      ],
+      "registered": "1995-08-31T04:00:00Z",
+      "registrar": "ICANN",
+      "registrar_abuse": "cbath@pir.org",
+      "statuses": [
+       "server delete prohibited",
+       "server transfer prohibited",
+       "server update prohibited"
+      ]
+     },
+     "reputation": {
+      "isp": "Cloudflare, Inc.",
+      "reports": 0,
+      "score": 0,
+      "usage": "Content Delivery Network"
+     },
+     "scan": "https://urlscan.io/result/01a20c19-c57f-769a-af03-262ee3e88816/",
+     "state": "live"
+    }
+   ],
+   "current": {
+    "actor": null,
+    "at": "2026-11-24T05:49:02Z",
+    "dns": {
+     "a": [
+      "104.20.26.136",
+      "172.66.157.237"
+     ],
+     "aaaa": [
+      "2606:4700:10::6814:1a88",
+      "2606:4700:10::ac42:9ded"
+     ],
+     "status": "NOERROR"
+    },
+    "http": {
+     "chain": [
+      {
+       "status": 200,
+       "url": "https://example.org/"
+      }
+     ],
+     "cloudflare": true,
+     "cloudflare_warning": false,
+     "final_url": "https://example.org/",
+     "server": "cloudflare",
+     "status": 200,
+     "suspended": false,
+     "title": "Example Domain",
+     "tls_error": null
+    },
+    "network": {
+     "as_domain": "cloudflare.com",
+     "as_name": "Cloudflare, Inc.",
+     "asn": "AS13335",
+     "country_code": "US",
+     "ip": "104.20.26.136"
+    },
+    "rdap": {
+     "expires": "2027-08-30T04:00:00Z",
+     "found": true,
+     "nameservers": [
+      "katelyn.ns.cloudflare.com",
+      "mitch.ns.cloudflare.com"
+     ],
+     "registered": "1995-08-31T04:00:00Z",
+     "registrar": "ICANN",
+     "registrar_abuse": "cbath@pir.org",
+     "statuses": [
+      "server delete prohibited",
+      "server transfer prohibited",
+      "server update prohibited"
+     ]
+    },
+    "reputation": {
+     "isp": "Cloudflare, Inc.",
+     "reports": 0,
+     "score": 0,
+     "usage": "Content Delivery Network"
+    },
+    "scan": "https://urlscan.io/result/01a20c19-c57f-769a-af03-262ee3e88816/",
+    "state": "live"
+   },
+   "first_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T05:49:02Z",
+   "note": "Demo - reported to registrar and host, no action yet",
+   "reported": "2026-11-20",
+   "target": "example.org",
+   "url": "https://example.org/",
+   "watched": true
+  },
+  "https://example.net/login": {
+   "changes": [
+    {
+     "actor": "host",
+     "at": "2026-11-24T05:49:02Z",
+     "dns": {
+      "a": [
+       "104.20.21.8",
+       "172.66.175.59"
+      ],
+      "aaaa": [
+       "2606:4700:10::6814:1508",
+       "2606:4700:10::ac42:af3b"
+      ],
+      "status": "NOERROR"
+     },
+     "http": {
+      "chain": [
+       {
+        "status": 404,
+        "url": "https://example.net/login"
+       }
+      ],
+      "cloudflare": true,
+      "cloudflare_warning": false,
+      "final_url": "https://example.net/login",
+      "server": "cloudflare",
+      "status": 404,
+      "suspended": false,
+      "title": "Example Domain",
+      "tls_error": null
+     },
+     "network": {
+      "as_domain": "cloudflare.com",
+      "as_name": "Cloudflare, Inc.",
+      "asn": "AS13335",
+      "country_code": "US",
+      "ip": "104.20.21.8"
+     },
+     "rdap": {
+      "expires": "2027-08-30T04:00:00Z",
+      "found": true,
+      "nameservers": [
+       "betty.ns.cloudflare.com",
+       "hugh.ns.cloudflare.com"
+      ],
+      "registered": "1995-08-31T04:00:00Z",
+      "registrar": "RESERVED-Internet Assigned Numbers Authority",
+      "registrar_abuse": null,
+      "statuses": [
+       "client delete prohibited",
+       "client transfer prohibited",
+       "client update prohibited"
+      ]
+     },
+     "reputation": {
+      "isp": "Cloudflare, Inc.",
+      "reports": 0,
+      "score": 0,
+      "usage": "Content Delivery Network"
+     },
+     "scan": "https://urlscan.io/result/01a20c19-ca7e-7437-8ada-a2a75cc5f57f/",
+     "state": "http-error"
+    }
+   ],
+   "current": {
+    "actor": "host",
+    "at": "2026-11-24T05:49:02Z",
+    "dns": {
+     "a": [
+      "104.20.21.8",
+      "172.66.175.59"
+     ],
+     "aaaa": [
+      "2606:4700:10::6814:1508",
+      "2606:4700:10::ac42:af3b"
+     ],
+     "status": "NOERROR"
+    },
+    "http": {
+     "chain": [
+      {
+       "status": 404,
+       "url": "https://example.net/login"
+      }
+     ],
+     "cloudflare": true,
+     "cloudflare_warning": false,
+     "final_url": "https://example.net/login",
+     "server": "cloudflare",
+     "status": 404,
+     "suspended": false,
+     "title": "Example Domain",
+     "tls_error": null
+    },
+    "network": {
+     "as_domain": "cloudflare.com",
+     "as_name": "Cloudflare, Inc.",
+     "asn": "AS13335",
+     "country_code": "US",
+     "ip": "104.20.21.8"
+    },
+    "rdap": {
+     "expires": "2027-08-30T04:00:00Z",
+     "found": true,
+     "nameservers": [
+      "betty.ns.cloudflare.com",
+      "hugh.ns.cloudflare.com"
+     ],
+     "registered": "1995-08-31T04:00:00Z",
+     "registrar": "RESERVED-Internet Assigned Numbers Authority",
+     "registrar_abuse": null,
+     "statuses": [
+      "client delete prohibited",
+      "client transfer prohibited",
+      "client update prohibited"
+     ]
+    },
+    "reputation": {
+     "isp": "Cloudflare, Inc.",
+     "reports": 0,
+     "score": 0,
+     "usage": "Content Delivery Network"
+    },
+    "scan": "https://urlscan.io/result/01a20c19-ca7e-7437-8ada-a2a75cc5f57f/",
+    "state": "http-error"
+   },
+   "first_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T05:49:02Z",
+   "note": "Demo - URL entry, checks this exact path",
+   "reported": "2026-11-21",
+   "target": "https://example.net/login",
+   "url": "https://example.net/login",
+   "watched": true
+  },
+  "takedown-demo.invalid": {
+   "changes": [
+    {
+     "actor": "registrar or registry",
+     "at": "2026-11-24T05:49:02Z",
+     "dns": {
+      "a": [],
+      "aaaa": [],
+      "status": "NXDOMAIN"
+     },
+     "http": null,
+     "rdap": {
+      "found": false
+     },
+     "state": "deleted"
+    }
+   ],
+   "current": {
+    "actor": "registrar or registry",
+    "at": "2026-11-24T05:49:02Z",
+    "dns": {
+     "a": [],
+     "aaaa": [],
+     "status": "NXDOMAIN"
+    },
+    "http": null,
+    "rdap": {
+     "found": false
+    },
+    "state": "deleted"
+   },
+   "first_checked": "2026-11-24T05:49:02Z",
+   "last_checked": "2026-11-24T05:49:02Z",
+   "note": "Demo - simulates a registrar takedown",
+   "reported": "2026-11-01",
+   "target": "takedown-demo.invalid",
+   "url": "https://takedown-demo.invalid/",
+   "watched": true
+  }
+ }
 }
