@@ -1,0 +1,32 @@
+# takedown-watcher watchlist
+#
+# One entry per line, fields separated by "|":
+#
+#   target | reported | note
+#
+#   target    A domain (example.com) or a full URL (https://example.com/login).
+#             A bare domain is checked as https://<domain>/.
+#   reported  Optional. The date you sent abuse reports, as YYYY-MM-DD (UTC).
+#             Used to measure time from report to takedown. Leave blank for none.
+#   note      Optional. Free text: who you reported to, a case number, etc.
+#
+# Lines starting with "#" and blank lines are ignored. Add as many entries as
+# you like; nothing depends on how many are listed here.
+#
+# This repository is public, so everything in this file is visible to anyone.
+# Only list domains you are comfortable naming publicly.
+#
+# The entries below are safe demonstration targets, not real abuse cases.
+
+# Control: an IANA-reserved domain that should always stay up.
+example.com |  | Control entry - should always report "live"
+
+# A reported entry where no one has acted yet.
+example.org | 2026-11-20 | Demo - reported to registrar and host, no action yet
+
+# A full URL rather than a bare domain.
+https://example.net/login | 2026-11-21 | Demo - URL entry, checks this exact path
+
+# The .invalid TLD can never resolve, so this shows the "NXDOMAIN" state
+# you would see after a registrar suspends a domain.
+takedown-demo.invalid | 2026-11-01 | Demo - simulates a registrar takedown
