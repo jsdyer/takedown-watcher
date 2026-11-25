@@ -1,12 +1,12 @@
 {
  "classification_note": "Version 2 reclassifies stored observations without changing their observation times; ordinary failures do not establish takedown or responsibility.",
- "last_run": "2026-11-25T14:35:22Z",
+ "last_run": "2026-11-25T17:26:27Z",
  "last_run_summary": {
   "checked": 4,
   "failed": 0,
   "watched": 4
  },
- "last_success": "2026-11-25T14:35:22Z",
+ "last_success": "2026-11-25T17:26:27Z",
  "schema": 1,
  "targets": {
   "example.com": {
@@ -77,7 +77,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-25T14:35:22Z",
+    "at": "2026-11-25T17:26:27Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -138,7 +138,7 @@
     "state": "live"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-25T14:35:22Z",
+   "last_checked": "2026-11-25T17:26:27Z",
    "note": "Control entry - should always report \"live\"",
    "reported": null,
    "target": "example.com",
@@ -213,7 +213,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-25T14:35:22Z",
+    "at": "2026-11-25T17:26:27Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -274,7 +274,7 @@
     "state": "live"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-25T14:35:22Z",
+   "last_checked": "2026-11-25T17:26:27Z",
    "note": "Demonstration control - no abuse report was made",
    "reported": null,
    "target": "example.org",
@@ -349,7 +349,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-25T14:35:22Z",
+    "at": "2026-11-25T17:26:27Z",
     "classification_version": 2,
     "dns": {
      "a": [
@@ -410,7 +410,7 @@
     "state": "http-error"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-25T14:35:22Z",
+   "last_checked": "2026-11-25T17:26:27Z",
    "note": "Demonstration control - an HTTP 404 is not a takedown",
    "reported": null,
    "target": "https://example.net/login",
@@ -437,7 +437,7 @@
    ],
    "current": {
     "actor": null,
-    "at": "2026-11-25T14:35:22Z",
+    "at": "2026-11-25T17:26:27Z",
     "classification_version": 2,
     "dns": {
      "a": [],
@@ -451,7 +451,7 @@
     "state": "nxdomain"
    },
    "first_checked": "2026-11-24T05:49:02Z",
-   "last_checked": "2026-11-25T14:35:22Z",
+   "last_checked": "2026-11-25T17:26:27Z",
    "note": "Demonstration control - reserved nonresolving name, never a registered domain",
    "reported": null,
    "target": "takedown-demo.invalid",
